@@ -49,4 +49,4 @@ target_link_libraries(show_distributed_memory PRIVATE mini2_common mini2_proto g
 
 # Utility tool to inspect shared memory segments (Phase 4)
 add_executable(inspect_shm tools/inspect_shm.cpp)
-target_link_libraries(inspect_shm PRIVATE pthread)
+target_link_libraries(inspect_shm PRIVATE pthread rt)
