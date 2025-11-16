@@ -1,3 +1,18 @@
+# Get WSL IP
+wsl hostname -I
+
+# Allow firewall
+New-NetFirewallRule -DisplayName "WSL Servers" -Direction Inbound -LocalPort 50050-50055 -Protocol TCP -Action Allow
+
+# Port forward (replace <WSL_IP> with actual IP from first command)
+$wsl_ip = "172.26.247.68"  # Use actual WSL IP
+netsh interface portproxy add v4tov4 listenport=50050 listenaddress=0.0.0.0 connectport=50050 connectaddress=$wsl_ip
+netsh interface portproxy add v4tov4 listenport=50051 listenaddress=0.0.0.0 connectport=50051 connectaddress=$wsl_ip
+netsh interface portproxy add v4tov4 listenport=50052 listenaddress=0.0.0.0 connectport=50052 connectaddress=$wsl_ip
+netsh interface portproxy add v4tov4 listenport=50053 listenaddress=0.0.0.0 connectport=50053 connectaddress=$wsl_ip
+netsh interface portproxy add v4tov4 listenport=50054 listenaddress=0.0.0.0 connectport=50054 connectaddress=$wsl_ip
+netsh interface portproxy add v4tov4 listenport=50055 listenaddress=0.0.0.0 connectport=50055 connectaddress=$wsl_ip
+
 # Mini-2 Project
 
 Distributed multi-process system with synchronous gRPC, internal concurrency (threads/queues/timers), fixed overlay topology, and two chunking strategies.
