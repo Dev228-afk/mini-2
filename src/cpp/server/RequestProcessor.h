@@ -87,6 +87,7 @@ private:
     
     // Storage for results
     std::mutex results_mutex_;
+    std::condition_variable results_cv_;
     std::map<std::string, std::vector<mini2::WorkerResult>> pending_results_;
     
     // Status tracking
@@ -109,7 +110,7 @@ private:
     void SharedMemoryUpdateThreadFunc();
     
     // Helper methods
-    void ForwardToTeamLeaders(const mini2::Request& req, bool need_green, bool need_pink);
+    int ForwardToTeamLeaders(const mini2::Request& req, bool need_green, bool need_pink);
     void ForwardToWorkers(const mini2::Request& req);
     mini2::WorkerResult GenerateMockData(const std::string& request_id, uint32_t part_index);
     mini2::WorkerResult ProcessRealData(const mini2::Request& req, size_t start_idx, size_t count);

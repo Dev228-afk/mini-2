@@ -110,19 +110,27 @@ mini2::AggregatedResult RequestProcessor::ProcessRequestOnce(const mini2::Reques
               << " (green=" << req.need_green() << ", pink=" << req.need_pink() << ")" << std::endl;
 
     // Forward to team leaders
-    ForwardToTeamLeaders(req, req.need_green(), req.need_pink());
+    int expected_results = ForwardToTeamLeaders(req, req.need_green(), req.need_pink());
+    
+    std::cout << "[Leader] Waiting for " << expected_results << " team leader results..." << std::endl;
 
-    // Wait for results - adaptive timeout based on expected processing time
-    // For large datasets (10M rows), loading + processing can take 30-60 seconds
-    // Team leaders load dataset, process chunks, and send back results
-    // Use generous timeout to allow for large dataset processing
-    std::this_thread::sleep_for(std::chrono::seconds(90));  // 90 second timeout for large datasets
+    // Wait for results with condition variable (efficient waiting)
+    std::unique_lock<std::mutex> lock(results_mutex_);
+    bool got_results = results_cv_.wait_for(lock, std::chrono::seconds(90), [this, &req, expected_results]() {
+        return pending_results_.count(req.request_id()) && 
+               pending_results_[req.request_id()].size() >= (size_t)expected_results;
+    });
+    
+    if (!got_results) {
+        std::cerr << "[Leader] WARNING: Timeout waiting for results from team leaders" << std::endl;
+    } else {
+        std::cout << "[Leader] Received all expected results" << std::endl;
+    }
 
-    // Collect and combine results
+    // Collect and combine results (lock already held from wait_for)
     mini2::AggregatedResult aggregated;
     aggregated.set_request_id(req.request_id());
     
-    std::lock_guard<std::mutex> lock(results_mutex_);
     if (pending_results_.count(req.request_id())) {
         aggregated = CombineResults(pending_results_[req.request_id()]);
         pending_results_.erase(req.request_id());
@@ -140,7 +148,7 @@ mini2::AggregatedResult RequestProcessor::ProcessRequestOnce(const mini2::Reques
     return aggregated;
 }
 
-void RequestProcessor::ForwardToTeamLeaders(const mini2::Request& req, bool need_green, bool need_pink) {
+int RequestProcessor::ForwardToTeamLeaders(const mini2::Request& req, bool need_green, bool need_pink) {
     int forwarded = 0;
     for (auto& [addr, stub] : team_leader_stubs_) {
         ClientContext ctx;
@@ -162,6 +170,7 @@ void RequestProcessor::ForwardToTeamLeaders(const mini2::Request& req, bool need
         }
     }
     std::cout << "[Leader] Forwarded request to " << forwarded << " team leader(s)" << std::endl;
+    return forwarded;
 }
 
 // ============================================================================
@@ -367,6 +376,9 @@ void RequestProcessor::ReceiveWorkerResult(const mini2::WorkerResult& result) {
     
     std::cout << "[TeamLeader " << node_id_ << "] Received worker result for: " 
               << result.request_id() << " part=" << result.part_index() << std::endl;
+    
+    // Notify waiting threads that a result arrived
+    results_cv_.notify_all();
 }
 
 mini2::AggregatedResult RequestProcessor::GetTeamAggregatedResult(const std::string& request_id) {
