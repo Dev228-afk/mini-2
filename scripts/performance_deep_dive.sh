@@ -70,8 +70,8 @@ for i in {1..10}; do
     $CLIENT --server $GATEWAY --mode request --query "seq_test_$i" > /dev/null 2>&1
 done
 END=$(date +%s%N)
-SEQ_TIME=$(( ($END - $START) / 1000000 ))
-SEQ_AVG=$(( $SEQ_TIME / 10 ))
+SEQ_TIME=$(( (END - START) / 1000000 ))
+SEQ_AVG=$(( SEQ_TIME / 10 ))
 echo "    Total: ${SEQ_TIME}ms, Average: ${SEQ_AVG}ms per request"
 echo ""
 
@@ -82,8 +82,8 @@ for i in {1..10}; do
 done
 wait
 END=$(date +%s%N)
-PAR_TIME=$(( ($END - $START) / 1000000 ))
-PAR_AVG=$(( $PAR_TIME / 10 ))
+PAR_TIME=$(( (END - START) / 1000000 ))
+PAR_AVG=$(( PAR_TIME / 10 ))
 echo "    Total: ${PAR_TIME}ms, Average: ${PAR_AVG}ms per request"
 echo ""
 
@@ -123,7 +123,7 @@ if [ ! -z "$TOP_PID" ]; then
     kill $TOP_PID 2>/dev/null || true
     wait $TOP_PID 2>/dev/null || true
     echo "    50 requests completed in ${LOAD_TIME}ms"
-    echo "    Average: $(( $LOAD_TIME / 50 ))ms per request"
+    echo "    Average: $(( LOAD_TIME / 50 ))ms per request"
 else
     echo "    50 requests completed in ${LOAD_TIME}ms"
 fi
@@ -165,7 +165,7 @@ END=$(date +%s%N)
 CROSS_TIME=$(( ($END - $START) / 20000 )) # microseconds per request
 echo "    Average: ${CROSS_TIME}µs per request"
 
-OVERHEAD=$(( $CROSS_TIME - $SAME_TIME ))
+OVERHEAD=$(( CROSS_TIME - SAME_TIME ))
 echo "  c) Cross-Computer Overhead: ${OVERHEAD}µs"
 echo ""
 
@@ -274,18 +274,18 @@ TIMEOUTS=0
 
 for i in {1..100}; do
     if timeout 5s $CLIENT --server $GATEWAY --mode request --query "reliability_test_$i" > /dev/null 2>&1; then
-        SUCCESS=$(( $SUCCESS + 1 ))
+        SUCCESS=$(( SUCCESS + 1 ))
     else
         EXIT_CODE=$?
         if [ $EXIT_CODE -eq 124 ]; then
-            TIMEOUTS=$(( $TIMEOUTS + 1 ))
+            TIMEOUTS=$(( TIMEOUTS + 1 ))
         else
-            FAILED=$(( $FAILED + 1 ))
+            FAILED=$(( FAILED + 1 ))
         fi
     fi
     
     # Progress indicator
-    if [ $(( $i % 10 )) -eq 0 ]; then
+    if [ $(( i % 10 )) -eq 0 ]; then
         echo -n "."
     fi
 done
@@ -363,7 +363,7 @@ cat > "$LOG_DIR/DETAILED_PERFORMANCE_ANALYSIS.md" <<EOF
 
 ### Load Test Results (50 concurrent requests)
 - **Total Time:** ${LOAD_TIME}ms
-- **Average per Request:** $(( $LOAD_TIME / 50 ))ms
+- **Average per Request:** $(( LOAD_TIME / 50 ))ms
 - **Throughput:** $(echo "scale=2; 50000 / $LOAD_TIME" | bc) req/sec
 
 ### Resource Usage

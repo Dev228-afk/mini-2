@@ -55,32 +55,34 @@ measure_rtt() {
 run_timed_test() {
     local test_name=$1
     local command=$2
-    local log_file="$LOG_DIR/${test_name// /_}.log"
+    # Remove parentheses and special chars from filename
+    local safe_name=$(echo "$test_name" | tr -d '()' | tr ' ' '_' | tr -d ':')
+    local log_file="$LOG_DIR/${safe_name}.log"
     
-    echo -e "${YELLOW}Running: $test_name${NC}"
-    echo "Command: $command"
-    echo ""
+    echo -e "${YELLOW}Running: $test_name${NC}" >&2
+    echo "Command: $command" >&2
+    echo "" >&2
     
     local start=$(date +%s%N)
-    eval "$command > $log_file 2>&1"
+    eval "$command > '$log_file' 2>&1"
     local exit_code=$?
     local end=$(date +%s%N)
     local duration=$(( ($end - $start) / 1000000 ))  # Convert to ms
     
     if [ $exit_code -eq 0 ]; then
-        echo -e "${GREEN}✓ PASSED${NC} - Duration: ${duration}ms"
+        echo -e "${GREEN}✓ PASSED${NC} - Duration: ${duration}ms" >&2
         echo "SUCCESS: Duration=${duration}ms" >> "$log_file"
     else
-        echo -e "${RED}✗ FAILED${NC} - Duration: ${duration}ms"
+        echo -e "${RED}✗ FAILED${NC} - Duration: ${duration}ms" >&2
         echo "FAILED: Duration=${duration}ms, Exit Code=$exit_code" >> "$log_file"
     fi
     
     # Show last 5 lines of output
-    echo "Last 5 lines:"
-    tail -5 "$log_file" | sed 's/^/  /'
-    echo ""
+    echo "Last 5 lines:" >&2
+    tail -5 "$log_file" | sed 's/^/  /' >&2
+    echo "" >&2
     
-    echo "$duration" # Return duration
+    echo "$duration" # Return ONLY duration to stdout
 }
 
 ################################################################################
@@ -130,12 +132,14 @@ echo -e "${BLUE}═════════════════════�
 echo ""
 
 # Test 1.1: Ping single server
-T1_1=$(run_timed_test "Test 1.1: Ping Node A (Gateway)" \
+T1_1=$(run_timed_test "Test 1.1: Ping Node A Gateway" \
     "$CLIENT --server $GATEWAY --mode ping")
+[ -z "$T1_1" ] && T1_1=0
 
 # Test 1.2: Ping all servers
 T1_2=$(run_timed_test "Test 1.2: Ping All Nodes" \
     "$CLIENT --server $GATEWAY --mode all")
+[ -z "$T1_2" ] && T1_2=0
 
 # Save Phase 1 metrics
 cat > "$LOG_DIR/phase1_metrics.txt" <<EOF
@@ -144,7 +148,7 @@ Phase 1: Connectivity Tests
 Test 1.1 (Ping A):      ${T1_1}ms
 Test 1.2 (Ping All):    ${T1_2}ms
 
-Average Ping Latency:   $(( ($T1_1 + $T1_2) / 2 ))ms
+Average Ping Latency:   $(( (T1_1 + T1_2) / 2 ))ms
 EOF
 
 ################################################################################
@@ -157,20 +161,24 @@ echo -e "${BLUE}═════════════════════�
 echo ""
 
 # Test 2.1: Simple request (no dataset)
-T2_1=$(run_timed_test "Test 2.1: Simple Request" \
+T2_1=$(run_timed_test "Test 2.1 Simple Request" \
     "$CLIENT --server $GATEWAY --mode request --query 'simple test query'")
+[ -z "$T2_1" ] && T2_1=0
 
 # Test 2.2: Green team request
-T2_2=$(run_timed_test "Test 2.2: GREEN Team Request" \
+T2_2=$(run_timed_test "Test 2.2 GREEN Team Request" \
     "$CLIENT --server $GATEWAY --mode request --query 'green team test'")
+[ -z "$T2_2" ] && T2_2=0
 
 # Test 2.3: Pink team request
-T2_3=$(run_timed_test "Test 2.3: PINK Team Request" \
+T2_3=$(run_timed_test "Test 2.3 PINK Team Request" \
     "$CLIENT --server $GATEWAY --mode request --query 'pink team test'")
+[ -z "$T2_3" ] && T2_3=0
 
 # Test 2.4: Both teams
-T2_4=$(run_timed_test "Test 2.4: Both Teams Parallel" \
+T2_4=$(run_timed_test "Test 2.4 Both Teams Parallel" \
     "$CLIENT --server $GATEWAY --mode request --query 'both teams test'")
+[ -z "$T2_4" ] && T2_4=0
 
 # Save Phase 2 metrics
 cat > "$LOG_DIR/phase2_metrics.txt" <<EOF
@@ -181,7 +189,7 @@ Test 2.2 (Green Team):    ${T2_2}ms
 Test 2.3 (Pink Team):     ${T2_3}ms
 Test 2.4 (Both Teams):    ${T2_4}ms
 
-Average Request Time:     $(( ($T2_1 + $T2_2 + $T2_3 + $T2_4) / 4 ))ms
+Average Request Time:     $(( (T2_1 + T2_2 + T2_3 + T2_4) / 4 ))ms
 
 Observations:
 - Cross-computer forwarding: A→B→C (Computer 1→Computer 2)
@@ -200,8 +208,9 @@ echo ""
 
 # Test 3.1: Small dataset (1K rows)
 if [ -f test_data/data_1k.csv ]; then
-    T3_1=$(run_timed_test "Test 3.1: Small Dataset (1K rows)" \
+    T3_1=$(run_timed_test "Test 3.1 Small Dataset 1K rows" \
         "$CLIENT --server $GATEWAY --mode request --query 'test_data/data_1k.csv'")
+    [ -z "$T3_1" ] && T3_1=0
 else
     echo -e "${YELLOW}[SKIP] test_data/data_1k.csv not found${NC}"
     T3_1="N/A"
@@ -209,8 +218,9 @@ fi
 
 # Test 3.2: Medium dataset (10K rows - session mode)
 if [ -f test_data/data_10k.csv ]; then
-    T3_2=$(run_timed_test "Test 3.2: Medium Dataset (10K rows - session)" \
+    T3_2=$(run_timed_test "Test 3.2 Medium Dataset 10K rows session" \
         "$CLIENT --server $GATEWAY --mode session --query 'test_data/data_10k.csv'")
+    [ -z "$T3_2" ] && T3_2=0
 else
     echo -e "${YELLOW}[SKIP] test_data/data_10k.csv not found${NC}"
     T3_2="N/A"
@@ -219,8 +229,9 @@ fi
 # Test 3.3: Large dataset (100K rows - session mode)
 if [ -f test_data/data_100k.csv ]; then
     echo -e "${YELLOW}⚠️  Large dataset test - may take 30+ seconds${NC}"
-    T3_3=$(run_timed_test "Test 3.3: Large Dataset (100K rows - session)" \
+    T3_3=$(run_timed_test "Test 3.3 Large Dataset 100K rows session" \
         "$CLIENT --server $GATEWAY --mode session --query 'test_data/data_100k.csv'")
+    [ -z "$T3_3" ] && T3_3=0
 else
     echo -e "${YELLOW}[SKIP] test_data/data_100k.csv not found${NC}"
     T3_3="N/A"
@@ -229,8 +240,9 @@ fi
 # Test 3.4: Very Large dataset (1M rows - session mode)
 if [ -f test_data/data_1m.csv ]; then
     echo -e "${YELLOW}⚠️  Very large dataset test - may take 2-5 minutes${NC}"
-    T3_4=$(run_timed_test "Test 3.4: Very Large Dataset (1M rows - session)" \
+    T3_4=$(run_timed_test "Test 3.4 Very Large Dataset 1M rows session" \
         "$CLIENT --server $GATEWAY --mode session --query 'test_data/data_1m.csv'")
+    [ -z "$T3_4" ] && T3_4=0
 else
     echo -e "${YELLOW}[SKIP] test_data/data_1m.csv not found${NC}"
     T3_4="N/A"
@@ -240,8 +252,9 @@ fi
 if [ -f test_data/data_10m.csv ]; then
     echo -e "${RED}⚠️  EXTREME dataset test - may take 10-30 minutes${NC}"
     echo -e "${YELLOW}This tests system limits and memory management${NC}"
-    T3_5=$(run_timed_test "Test 3.5: Extreme Dataset (10M rows - session)" \
+    T3_5=$(run_timed_test "Test 3.5 Extreme Dataset 10M rows session" \
         "$CLIENT --server $GATEWAY --mode session --query 'test_data/data_10m.csv'")
+    [ -z "$T3_5" ] && T3_5=0
 else
     echo -e "${YELLOW}[SKIP] test_data/data_10m.csv not found${NC}"
     T3_5="N/A"
@@ -336,7 +349,8 @@ if [ -f ./build/src/cpp/show_distributed_memory ]; then
     T4_3_START=$(date +%s%N)
     ./build/src/cpp/show_distributed_memory > "$LOG_DIR/distributed_memory.txt" 2>&1 || true
     T4_3_END=$(date +%s%N)
-    T4_3=$(( ($T4_3_END - $T4_3_START) / 1000000 ))
+    T4_3=$(( (T4_3_END - T4_3_START) / 1000000 ))
+    [ -z "$T4_3" ] && T4_3=0
     
     cat "$LOG_DIR/distributed_memory.txt"
     echo ""
@@ -376,32 +390,32 @@ echo ""
 
 # Calculate throughput (requests per second)
 TOTAL_REQUESTS=7  # Basic tests: 2.1, 2.2, 2.3, 2.4, 3.1, 3.2, Ping
-TOTAL_TIME=$(( $T1_1 + $T2_1 + $T2_2 + $T2_3 + $T2_4 ))
+TOTAL_TIME=$(( T1_1 + T2_1 + T2_2 + T2_3 + T2_4 ))
 
 # Add dataset tests if completed
 DATASET_COUNT=0
 if [ "$T3_1" != "N/A" ]; then
-    TOTAL_TIME=$(( $TOTAL_TIME + $T3_1 ))
-    DATASET_COUNT=$(( $DATASET_COUNT + 1 ))
+    TOTAL_TIME=$(( TOTAL_TIME + T3_1 ))
+    DATASET_COUNT=$(( DATASET_COUNT + 1 ))
 fi
 if [ "$T3_2" != "N/A" ]; then
-    TOTAL_TIME=$(( $TOTAL_TIME + $T3_2 ))
-    DATASET_COUNT=$(( $DATASET_COUNT + 1 ))
+    TOTAL_TIME=$(( TOTAL_TIME + T3_2 ))
+    DATASET_COUNT=$(( DATASET_COUNT + 1 ))
 fi
 if [ "$T3_3" != "N/A" ]; then
-    TOTAL_TIME=$(( $TOTAL_TIME + $T3_3 ))
-    DATASET_COUNT=$(( $DATASET_COUNT + 1 ))
+    TOTAL_TIME=$(( TOTAL_TIME + T3_3 ))
+    DATASET_COUNT=$(( DATASET_COUNT + 1 ))
 fi
 if [ "$T3_4" != "N/A" ]; then
-    TOTAL_TIME=$(( $TOTAL_TIME + $T3_4 ))
-    DATASET_COUNT=$(( $DATASET_COUNT + 1 ))
+    TOTAL_TIME=$(( TOTAL_TIME + T3_4 ))
+    DATASET_COUNT=$(( DATASET_COUNT + 1 ))
 fi
 if [ "$T3_5" != "N/A" ]; then
-    TOTAL_TIME=$(( $TOTAL_TIME + $T3_5 ))
-    DATASET_COUNT=$(( $DATASET_COUNT + 1 ))
+    TOTAL_TIME=$(( TOTAL_TIME + T3_5 ))
+    DATASET_COUNT=$(( DATASET_COUNT + 1 ))
 fi
 
-TOTAL_REQUESTS=$(( $TOTAL_REQUESTS + $DATASET_COUNT ))
+TOTAL_REQUESTS=$(( TOTAL_REQUESTS + DATASET_COUNT ))
 THROUGHPUT=$(echo "scale=2; $TOTAL_REQUESTS / ($TOTAL_TIME / 1000)" | bc)
 
 # Generate comprehensive report
