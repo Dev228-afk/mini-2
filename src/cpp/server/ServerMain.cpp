@@ -42,12 +42,15 @@ int main(int argc, char** argv){
     auto it = cfg.nodes.find(node_id);
     if (it==cfg.nodes.end()){ std::cerr<<"Unknown node "<<node_id<<"\n"; return 1; }
     const auto& me = it->second;
-    std::string addr = me.host + ":" + std::to_string(me.port);
+    
+    // CRITICAL: Bind to 0.0.0.0 to accept connections on all network interfaces
+    // This allows WSL servers to accept connections from Windows and remote computers
+    std::string bind_addr = "0.0.0.0:" + std::to_string(me.port);
+    std::string public_addr = me.host + ":" + std::to_string(me.port);
 
     // Create RequestProcessor and configure connections based on role
     auto processor = std::make_shared<RequestProcessor>(node_id);
-    auto session_manager = std::make_shared<SessionManager>();
-    
+    auto session_manager = std::make_shared<SessionManager>();    
     // Setup connections based on node role - using config addresses
     if (node_id == "A") {
         // Process A: Connect to team leaders B and E
@@ -107,13 +110,13 @@ int main(int argc, char** argv){
     TeamIngressService teamSvc(processor, node_id);
     ClientGatewayService clientSvc(processor, session_manager);
 
-    b.AddListeningPort(addr, grpc::InsecureServerCredentials());
+    b.AddListeningPort(bind_addr, grpc::InsecureServerCredentials());
     b.RegisterService(&nodeSvc);
     b.RegisterService(&teamSvc);
     if (node_id=="A") b.RegisterService(&clientSvc);
 
     std::unique_ptr<grpc::Server> server(b.BuildAndStart());
-    std::cout << "Node " << node_id << " listening at " << addr << std::endl;
+    std::cout << "Node " << node_id << " listening at " << bind_addr << " (public: " << public_addr << ")" << std::endl;
     std::cout << "Press Ctrl+C for graceful shutdown" << std::endl;
     
     // ========================================================================
