@@ -86,19 +86,17 @@ bool SessionManager::GetNextChunk(const std::string& session_id, uint32_t index,
     
     std::unique_lock<std::mutex> session_lock(session.mutex);
     
-    // Wait until chunk is available or session is complete
+        // Wait until chunk is available or session is complete
     while (index >= session.chunks.size() && !session.complete) {
         std::cout << "[SessionManager] GetNext: Waiting for chunk " << index 
                   << " in session " << session_id << std::endl;
         
-        // Wait with timeout (30 seconds for very large datasets)
-        if (session.cv.wait_for(session_lock, std::chrono::seconds(30)) == std::cv_status::timeout) {
+        // Wait with timeout (95 seconds - longer than leader timeout of 90s)
+        if (session.cv.wait_for(session_lock, std::chrono::seconds(95)) == std::cv_status::timeout) {
             std::cerr << "[SessionManager] GetNext: Timeout waiting for chunk " << index << std::endl;
             return false;
         }
-    }
-    
-    // Check if chunk is available
+    }    // Check if chunk is available
     if (index < session.chunks.size()) {
         const auto& chunk = session.chunks[index];
         resp->set_request_id(session_id);
