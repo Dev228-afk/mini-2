@@ -10,7 +10,28 @@
 
 int main() {
     // Load network configuration
-    auto config = LoadConfig("../config/network_setup.json");
+    std::vector<std::string> config_paths = {
+        "config/network_setup.json",
+        "../config/network_setup.json",
+        "../../config/network_setup.json"
+    };
+    
+    NetworkConfig config;
+    bool loaded = false;
+    for (const auto& path : config_paths) {
+        try {
+            config = LoadConfig(path);
+            if (!config.nodes.empty()) {
+                loaded = true;
+                break;
+            }
+        } catch (...) { continue; }
+    }
+    
+    if (!loaded) {
+        std::cerr << "Error: Could not load config file" << std::endl;
+        return 1;
+    }
     
     std::vector<MemoryInfo> nodes;
     

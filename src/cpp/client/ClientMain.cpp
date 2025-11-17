@@ -340,15 +340,28 @@ int main(int argc, char** argv){
     } else if (mode == "all") {
         // Test all 6 processes using config addresses
         std::cout << "Testing all processes:" << std::endl;
-        try {
-            auto config = LoadConfig("../config/network_setup.json");
-            for (const auto& pair : config.nodes) {
-                const auto& node = pair.second;
-                std::string addr = node.host + ":" + std::to_string(node.port);
-                std::cout << "Node " << node.id << ": ";
-                testPing(addr);
-            }
-        } catch (...) {
+        std::vector<std::string> config_paths = {
+            "config/network_setup.json",
+            "../config/network_setup.json",
+            "../../config/network_setup.json"
+        };
+        bool loaded = false;
+        for (const auto& path : config_paths) {
+            try {
+                auto config = LoadConfig(path);
+                if (!config.nodes.empty()) {
+                    for (const auto& pair : config.nodes) {
+                        const auto& node = pair.second;
+                        std::string addr = node.host + ":" + std::to_string(node.port);
+                        std::cout << "Node " << node.id << ": ";
+                        testPing(addr);
+                    }
+                    loaded = true;
+                    break;
+                }
+            } catch (...) { continue; }
+        }
+        if (!loaded) {
             std::cerr << "Error loading config for 'all' mode" << std::endl;
         }
     } else if (mode == "request") {
