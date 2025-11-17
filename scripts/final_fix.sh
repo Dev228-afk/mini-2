@@ -29,8 +29,9 @@ echo "Working in: $(pwd)"
 echo ""
 
 # IPs
-CMP1="172.26.247.68"
-CMP2="172.22.223.237"
+# Computer IPs
+CMP1="192.168.137.110"
+CMP2="169.254.233.33"
 
 echo -e "${YELLOW}Step 1: KILL ALL SERVERS${NC}"
 pkill -9 mini2_server 2>/dev/null && echo "Killed old servers" || echo "No servers running"

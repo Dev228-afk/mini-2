@@ -3,42 +3,42 @@
     {
       "id": "A",
       "role": "LEADER",
-      "host": "172.20.191.33",
+      "host": "192.168.137.110",
       "port": 50050,
       "team": "GREEN"
     },
     {
       "id": "B",
       "role": "TEAM_LEADER",
-      "host": "172.20.191.33",
+      "host": "192.168.137.110",
       "port": 50051,
       "team": "GREEN"
     },
     {
       "id": "C",
       "role": "WORKER",
-      "host": "172.22.223.237",
+      "host": "169.254.233.33",
       "port": 50052,
       "team": "GREEN"
     },
     {
       "id": "D",
       "role": "TEAM_LEADER",
-      "host": "172.20.191.33",
+      "host": "192.168.137.110",
       "port": 50053,
       "team": "PINK"
     },
     {
       "id": "E",
       "role": "TEAM_LEADER",
-      "host": "172.22.223.237",
+      "host": "169.254.233.33",
       "port": 50054,
       "team": "PINK"
     },
     {
       "id": "F",
       "role": "WORKER",
-      "host": "172.22.223.237",
+      "host": "169.254.233.33",
       "port": 50055,
       "team": "PINK"
     }

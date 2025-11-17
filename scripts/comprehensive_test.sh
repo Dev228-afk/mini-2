@@ -1,7 +1,8 @@
 #!/bin/bash
 # Comprehensive test script - runs ALL phases with detailed output
 
-GATEWAY="172.26.247.68:50050"
+# Gateway server (adjust if needed)
+GATEWAY="192.168.137.110:50050"
 CLIENT="./build/src/cpp/mini2_client"
 
 echo "============================================"
@@ -205,7 +206,7 @@ ps aux | grep mini2_server | grep -v grep | awk '{print $11, "(PID " $2 ") - Mem
 echo ""
 echo "Network Latency (approximate):"
 echo "  Ping to gateway:"
-ping -c 3 172.26.247.68 2>/dev/null | tail -1 || echo "  [Unable to measure]"
+ping -c 3 192.168.137.110 2>/dev/null | tail -1 || echo "  [Unable to measure]"
 
 echo ""
 echo "=========================================="

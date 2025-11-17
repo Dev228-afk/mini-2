@@ -5,9 +5,9 @@
 echo "=== EMERGENCY FIX FOR MINI-2 ==="
 echo ""
 
-# Computer IPs - EDIT THESE IF DIFFERENT
-CMP1_IP="172.26.247.68"
-CMP2_IP="172.22.223.237"
+# IP addresses
+CMP1_IP="192.168.137.110"
+CMP2_IP="169.254.233.33"
 
 echo "Expected IPs:"
 echo "  Computer 1: $CMP1_IP"
