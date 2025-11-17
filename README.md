@@ -1,17 +1,32 @@
+xxxxx pc1xxxxx
 # Get WSL IP
-wsl hostname -I
+$wslIP = (wsl hostname -I).Trim()
 
-# Allow firewall
-New-NetFirewallRule -DisplayName "WSL Servers" -Direction Inbound -LocalPort 50050-50055 -Protocol TCP -Action Allow
+# Clear old rules
+netsh interface portproxy reset
 
-# Port forward (replace <WSL_IP> with actual IP from first command)
-$wsl_ip = "172.26.247.68"  # Use actual WSL IP
-netsh interface portproxy add v4tov4 listenport=50050 listenaddress=0.0.0.0 connectport=50050 connectaddress=$wsl_ip
-netsh interface portproxy add v4tov4 listenport=50051 listenaddress=0.0.0.0 connectport=50051 connectaddress=$wsl_ip
-netsh interface portproxy add v4tov4 listenport=50052 listenaddress=0.0.0.0 connectport=50052 connectaddress=$wsl_ip
-netsh interface portproxy add v4tov4 listenport=50053 listenaddress=0.0.0.0 connectport=50053 connectaddress=$wsl_ip
-netsh interface portproxy add v4tov4 listenport=50054 listenaddress=0.0.0.0 connectport=50054 connectaddress=$wsl_ip
-netsh interface portproxy add v4tov4 listenport=50055 listenaddress=0.0.0.0 connectport=50055 connectaddress=$wsl_ip
+# Add port forwarding for servers A, B, D
+netsh interface portproxy add v4tov4 listenport=50050 listenaddress=0.0.0.0 connectport=50050 connectaddress=$wslIP
+netsh interface portproxy add v4tov4 listenport=50051 listenaddress=0.0.0.0 connectport=50051 connectaddress=$wslIP
+netsh interface portproxy add v4tov4 listenport=50053 listenaddress=0.0.0.0 connectport=50053 connectaddress=$wslIP
+
+# Verify
+netsh interface portproxy show all
+
+xxxx pc2 xxxxx
+# Get WSL IP
+$wslIP = (wsl hostname -I).Trim()
+
+# Clear old rules
+netsh interface portproxy reset
+
+# Add port forwarding for servers C, E, F
+netsh interface portproxy add v4tov4 listenport=50052 listenaddress=0.0.0.0 connectport=50052 connectaddress=$wslIP
+netsh interface portproxy add v4tov4 listenport=50054 listenaddress=0.0.0.0 connectport=50054 connectaddress=$wslIP
+netsh interface portproxy add v4tov4 listenport=50055 listenaddress=0.0.0.0 connectport=50055 connectaddress=$wslIP
+
+# Verify
+netsh interface portproxy show all
 
 # Mini-2 Project
 
