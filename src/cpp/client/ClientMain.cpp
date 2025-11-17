@@ -335,6 +335,8 @@ int main(int argc, char** argv){
             std::cout << "Warning: No dataset specified, using connection test only" << std::endl;
             testOpenSession(gateway);
         } else {
+            std::cout << "📦 PROCESSING DATASET: " << dataset_path << std::endl;
+            std::cout << "Using Strategy B: GetNext (Sequential chunk retrieval)" << std::endl;
             testStrategyB_GetNext(gateway, dataset_path);
         }
     } else if (mode == "all") {
