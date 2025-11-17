@@ -76,6 +76,12 @@ void RequestProcessor::SetLeaderAddress(const std::string& leader_address) {
 }
 
 void RequestProcessor::LoadDataset(const std::string& dataset_path) {
+    // Skip loading for mock data
+    if (dataset_path.empty() || dataset_path == "mock_data") {
+        std::cout << "[RequestProcessor] Skipping dataset load (using mock data)" << std::endl;
+        return;
+    }
+    
     // Check if we need to reload (different dataset or not loaded yet)
     if (current_dataset_path_ == dataset_path && data_processor_ != nullptr) {
         std::cout << "[RequestProcessor] Dataset already loaded: " << dataset_path << std::endl;

@@ -52,30 +52,30 @@ echo "PHASE 2: Request Forwarding & Aggregation"
 echo "=========================================="
 echo ""
 
-echo "Test 2.1: Simple Query (No Teams)"
+echo "Test 2.1: Simple Query (No Dataset)"
 echo "-----------------------------------"
-$CLIENT --server $GATEWAY --query "phase2 simple query test" 2>&1 | head -15
+$CLIENT --server $GATEWAY --mode request --query "simple test query" 2>&1 | head -15
 echo ""
 sleep 2
 
 echo "Test 2.2: GREEN Team Request (Cross-Computer to C)"
 echo "----------------------------------------------------"
 echo "Expected flow: Client → A (Cmp1) → B (Cmp1) → C (Cmp2)"
-$CLIENT --server $GATEWAY --query "green team cross network test" --need-green 2>&1 | head -15
+$CLIENT --server $GATEWAY --mode request --query "green team test" 2>&1 | head -15
 echo ""
 sleep 2
 
 echo "Test 2.3: PINK Team Request (Cross-Computer to E)"
 echo "----------------------------------------------------"
 echo "Expected flow: Client → A (Cmp1) → E (Cmp2) → F (Cmp2)"
-$CLIENT --server $GATEWAY --query "pink team cross network test" --need-pink 2>&1 | head -15
+$CLIENT --server $GATEWAY --mode request --query "pink team test" 2>&1 | head -15
 echo ""
 sleep 2
 
 echo "Test 2.4: Both Teams Request (Parallel Processing)"
 echo "----------------------------------------------------"
 echo "Expected: Both GREEN and PINK process simultaneously"
-$CLIENT --server $GATEWAY --query "both teams parallel test" --need-green --need-pink 2>&1 | head -15
+$CLIENT --server $GATEWAY --mode request --query "both teams test" 2>&1 | head -15
 echo ""
 sleep 2
 
@@ -87,10 +87,10 @@ echo "PHASE 3: Chunked Response Strategies"
 echo "=========================================="
 echo ""
 
-echo "Test 3.1: Small Dataset (1K rows - should be single response)"
+echo "Test 3.1: Small Dataset (1K rows - single response)"
 echo "---------------------------------------------------------------"
 if [ -f test_data/data_1k.csv ]; then
-    $CLIENT --server $GATEWAY --dataset test_data/data_1k.csv --query "all" 2>&1 | head -15
+    $CLIENT --server $GATEWAY --mode request --query "test_data/data_1k.csv" 2>&1 | head -15
     echo ""
 else
     echo "[SKIP] test_data/data_1k.csv not found"
@@ -99,10 +99,10 @@ else
 fi
 sleep 2
 
-echo "Test 3.2: Medium Dataset (10K rows - chunked)"
-echo "-----------------------------------------------"
+echo "Test 3.2: Medium Dataset (10K rows - chunked with session)"
+echo "---------------------------------------------------------------"
 if [ -f test_data/data_10k.csv ]; then
-    $CLIENT --server $GATEWAY --dataset test_data/data_10k.csv --query "all" --mode chunked 2>&1 | head -15
+    $CLIENT --server $GATEWAY --mode session --query "test_data/data_10k.csv" 2>&1 | head -20
     echo ""
 else
     echo "[SKIP] test_data/data_10k.csv not found"
