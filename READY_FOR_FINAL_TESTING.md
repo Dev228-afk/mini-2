@@ -91,6 +91,12 @@ cd /home/meghpatel/dev/mini-2
 
 # Results will be saved to: test_results_YYYYMMDD_HHMMSS/
 # Including: PERFORMANCE_REPORT.md with RTT, throughput, findings
+
+# Tests include:
+# - Phase 1: Connectivity (ping)
+# - Phase 2: Request forwarding (mock data)
+# - Phase 3: Scalability (1K, 10K, 100K, 1M, 10M rows)
+# - Phase 4: Shared memory coordination
 ```
 
 ---
@@ -112,8 +118,9 @@ The comprehensive test suite measures:
 
 ### 3. **Session Management**
    - Session creation overhead
-   - Chunked response handling (1K, 10K row datasets)
+   - Chunked response handling (1K, 10K, 100K, 1M, 10M row datasets)
    - Memory usage patterns
+   - Scalability under extreme load
 
 ### 4. **Shared Memory**
    - Segment verification (shm_host1, shm_host2)
