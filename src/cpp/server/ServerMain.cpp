@@ -50,42 +50,43 @@ int main(int argc, char** argv){
     
     // Setup connections based on node role
     if (node_id == "A") {
-        // Process A: Connect to team leaders B and E
-        std::vector<std::string> team_leaders = {
-            "localhost:50051",  // Process B (Green Team Leader)
-            "localhost:50054"   // Process E (Pink Team Leader)
-        };
+        // Process A: Connect to team leaders B and E - using config addresses
+        std::string addr_B = config.nodes[1].host + ":" + std::to_string(config.nodes[1].port);
+        std::string addr_E = config.nodes[4].host + ":" + std::to_string(config.nodes[4].port);
+        std::vector<std::string> team_leaders = {addr_B, addr_E};
         processor->SetTeamLeaders(team_leaders);
-        std::cout << "[Setup] Node A configured as Leader with team leader connections\n";
+        std::cout << "[Setup] Node A configured as Leader with team leaders: " << addr_B << ", " << addr_E << "\n";
     } else if (node_id == "B") {
         // Team Leader B (Green Team): Connect back to A and to worker C
-        processor->SetLeaderAddress("localhost:50050");
-        std::vector<std::string> workers = {"localhost:50052"}; // Worker C
+        std::string addr_A = config.nodes[0].host + ":" + std::to_string(config.nodes[0].port);
+        std::string addr_C = config.nodes[2].host + ":" + std::to_string(config.nodes[2].port);
+        processor->SetLeaderAddress(addr_A);
+        std::vector<std::string> workers = {addr_C};
         processor->SetWorkers(workers);
-        std::cout << "[Setup] Node B configured as Green Team Leader\n";
+        std::cout << "[Setup] Node B configured as Green Team Leader (connects to A: " << addr_A << ", worker C: " << addr_C << ")\n";
         std::cout << "[Setup] Dataset will be loaded from Request.query field on demand\n";
     } else if (node_id == "E") {
         // Team Leader E (Pink Team): Connect back to A and to workers D, F
-        processor->SetLeaderAddress("localhost:50050");
-        std::vector<std::string> workers = {
-            "localhost:50053",  // Worker D
-            "localhost:50055"   // Worker F
-        };
+        std::string addr_A = config.nodes[0].host + ":" + std::to_string(config.nodes[0].port);
+        std::string addr_D = config.nodes[3].host + ":" + std::to_string(config.nodes[3].port);
+        std::string addr_F = config.nodes[5].host + ":" + std::to_string(config.nodes[5].port);
+        processor->SetLeaderAddress(addr_A);
+        std::vector<std::string> workers = {addr_D, addr_F};
         processor->SetWorkers(workers);
-        std::cout << "[Setup] Node E configured as Pink Team Leader\n";
+        std::cout << "[Setup] Node E configured as Pink Team Leader (connects to A: " << addr_A << ", workers D: " << addr_D << ", F: " << addr_F << ")\n";
         std::cout << "[Setup] Dataset will be loaded from Request.query field on demand\n";
     } else if (node_id == "C" || node_id == "D" || node_id == "F") {
         // Workers: Connect to their respective team leaders and start worker queue
         std::string team_leader_addr;
         if (node_id == "C") {
-            team_leader_addr = "localhost:50051";  // Connect to B
-            std::cout << "[Setup] Node C configured as Worker (Green Team)\n";
+            team_leader_addr = config.nodes[1].host + ":" + std::to_string(config.nodes[1].port);  // Connect to B
+            std::cout << "[Setup] Node C configured as Worker (Green Team, leader: " << team_leader_addr << ")\n";
         } else if (node_id == "D") {
-            team_leader_addr = "localhost:50054";  // Connect to E
-            std::cout << "[Setup] Node D configured as Worker (Pink Team)\n";
+            team_leader_addr = config.nodes[4].host + ":" + std::to_string(config.nodes[4].port);  // Connect to E
+            std::cout << "[Setup] Node D configured as Worker (Pink Team, leader: " << team_leader_addr << ")\n";
         } else if (node_id == "F") {
-            team_leader_addr = "localhost:50054";  // Connect to E
-            std::cout << "[Setup] Node F configured as Worker (Pink Team)\n";
+            team_leader_addr = config.nodes[4].host + ":" + std::to_string(config.nodes[4].port);  // Connect to E
+            std::cout << "[Setup] Node F configured as Worker (Pink Team, leader: " << team_leader_addr << ")\n";
         }
         
         processor->SetLeaderAddress(team_leader_addr);
