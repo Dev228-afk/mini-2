@@ -204,17 +204,30 @@ void RequestProcessor::HandleTeamRequest(const mini2::Request& req) {
             });
         
         if (!got_results) {
-            std::cerr << "[TeamLeader " << node_id_ << "] WARNING: Timeout waiting for worker results" 
+            std::cerr << "[TeamLeader " << node_id_ << "] WARNING: Timeout waiting for worker results, processing locally" 
                       << std::endl;
+            lock.unlock();
+            
+            // Process locally as fallback
+            if (HasDataset()) {
+                size_t total_rows = data_processor_->GetTotalRows();
+                size_t rows_per_part = total_rows / 2;
+                
+                for (uint32_t i = 0; i < 2; i++) {
+                    auto worker_result = ProcessRealData(req, i * rows_per_part, rows_per_part);
+                    ReceiveWorkerResult(worker_result);
+                }
+            }
         } else {
             std::cout << "[TeamLeader " << node_id_ << "] Received all " << expected_workers 
                       << " worker results" << std::endl;
+            lock.unlock();
         }
-        lock.unlock();
         
     } else {
-        // Fallback: Team leader processes data directly (Phase 2 behavior)
-        std::cout << "[TeamLeader " << node_id_ << "] Processing locally (no workers or data)" << std::endl;
+        // Fallback: Team leader processes data directly
+        std::cout << "[TeamLeader " << node_id_ << "] Processing locally (HasDataset=" 
+                  << (HasDataset() ? "true" : "false") << ", workers=" << worker_stubs_.size() << ")" << std::endl;
         
         if (HasDataset()) {
             // Process real data locally
