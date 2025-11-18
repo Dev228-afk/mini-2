@@ -111,6 +111,9 @@ void testStrategyB_GetNext(const std::string& gateway, const std::string& datase
     // Start request
     std::cout << "Step 1: Starting session..." << std::endl;
     grpc::ClientContext ctx1;
+    // StartRequest should be quick, but allow 30s
+    ctx1.set_deadline(std::chrono::system_clock::now() + std::chrono::seconds(30));
+    
     mini2::Request req;
     req.set_request_id("test-strategyB-getnext");
     req.set_query(dataset_path.empty() ? "mock_data" : dataset_path);
@@ -141,6 +144,9 @@ void testStrategyB_GetNext(const std::string& gateway, const std::string& datase
     
     while (true) {
         grpc::ClientContext ctx2;
+        // Set 5-minute deadline for each GetNext call (handles large datasets like 10M)
+        ctx2.set_deadline(std::chrono::system_clock::now() + std::chrono::seconds(600));
+        
         mini2::NextChunkReq next_req;
         next_req.set_request_id(session.request_id());
         next_req.set_next_index(index);
