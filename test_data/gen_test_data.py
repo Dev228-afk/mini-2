@@ -5,7 +5,7 @@ import random
 import sys
 from dataclasses import dataclass
 from datetime import datetime, timedelta
-from typing import Iterable, List
+from typing import Iterable, List, Tuple, Optional
 
 # format is used accoriding to fire_dataset
 START_OF_2020 = datetime(2020, 1, 1)
@@ -68,7 +68,7 @@ class AirQualityRecord:
 
 
 
-def random_coordinate() -> tuple[float, float]:
+def random_coordinate() -> Tuple[float, float]:
     lat = random.uniform(-90, 90)
     lon = random.uniform(-180, 180)
     return lat, lon
@@ -86,24 +86,24 @@ def random_2020_utc_string() -> str:
     return f"{month}/{day}/{year_short} {hour}:00"
 
 
-def pick_parameter_and_unit() -> tuple[str, str]:
+def pick_parameter_and_unit() -> Tuple[str, str]:
     parameter = random.choice(PARAMETERS)
     unit = random.choice(UNITS)
     return parameter, unit
 
 
-def random_concentrations() -> tuple[int, int, int]:
+def random_concentrations() -> Tuple[int, int, int]:
     raw = random.randint(0, 100)
     concentration = int(raw * random.uniform(1.05, 1.25))
     aqi = random.randint(0, 200)
     return raw, concentration, aqi
 
 
-def random_site_info() -> tuple[str, str]:
+def random_site_info() -> Tuple[str, str]:
     return random.choice(SITE_NAMES), random.choice(AGENCIES)
 
 
-def random_ids() -> tuple[int, str]:
+def random_ids() -> Tuple[int, str]:
     aqs_id = random.randint(100_000_000, 999_999_999)
     prefix = random.randint(840000000000, 849999999999)
     full_aqs_id = f"{prefix:012d}"
@@ -184,7 +184,7 @@ SIZE_MAP = {
 }
 
 
-def parse_args(argv: List[str] | None = None) -> argparse.Namespace:
+def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Generate CSV files with synthetic air quality monitoring data.",
     )
@@ -215,7 +215,7 @@ def effective_row_count(args: argparse.Namespace) -> int:
     raise ValueError("You must specify a positive --rows value or a valid --size.")
 
 
-def main(argv: List[str] | None = None) -> int:
+def main(argv: Optional[List[str]] = None) -> int:
     args = parse_args(argv)
 
     try:
