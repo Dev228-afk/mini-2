@@ -84,10 +84,10 @@ if [[ ${#SERVERS[@]} -eq 0 ]]; then
                 echo "Unable to detect host IP. Specify --computer or --nodes." >&2
                 exit 1
             fi
-            if [[ "$MY_IP" =~ 192\.168\.137\. ]] && [[ "$MY_IP" != "192.168.137.1" ]]; then
+            if [[ "$MY_IP" =~ (192\.168\.137\.|169\.254\.239\.) ]]; then
                 COMPUTER=1
                 SERVERS=(A B D)
-            elif [[ "$MY_IP" =~ (192\.168\.137\.1|169\.254\.|172\.22\.) ]]; then
+            elif [[ "$MY_IP" =~ (192\.168\.137\.1|169\.254\.206\.|172\.22\.) ]]; then
                 COMPUTER=2
                 SERVERS=(C E F)
             else
