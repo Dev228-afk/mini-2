@@ -111,15 +111,16 @@ if [[ ! -f "$CONFIG_FILE" ]]; then
     exit 1
 fi
 
-python3 -m json.tool "$CONFIG_FILE" >/dev/null || {
+
+if ! python3 -m json.tool "$CONFIG_FILE" >/dev/null 2>&1; then
     echo "Config file is not valid JSON: $CONFIG_FILE" >&2
     exit 1
-}
+fi
 
 if [[ ! -x build/src/cpp/mini2_server ]]; then
     echo "Binary build/src/cpp/mini2_server not found. Build the project first." >&2
     exit 1
-}
+fi
 
 mkdir -p logs
 
